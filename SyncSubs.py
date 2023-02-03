@@ -36,7 +36,7 @@ def mindex(arr):
 def single_offset(sub1, sub2, inc, window):
     def offset_helper(sign):
         tmp = copy(sub1)
-        losses = np.np.array([], dtype=np.int32)
+        losses = np.array([], dtype=np.int32)
         rep = int(window * 1000 // inc)
         tmp = shift(tmp, -sign * inc)
         for i in range(rep):
@@ -72,7 +72,7 @@ def all_offsets(sub1, sub2, inc, window, step):
         i += step
     offsets = adjust_loop(sub1, sub2, offsets)
 
-    return np.np.array(offsets)
+    return np.array(offsets)
 
 
 def adjust(sub1, sub2, data1):
@@ -81,23 +81,23 @@ def adjust(sub1, sub2, data1):
             ll = data[ind][1] - data[ind][0]
             if ind == 0:
                 if sub1[ll // 2][1] + data[ind][2] < 0:
-                    print(ind, 1)
+                    # print(ind, 1)
                     return True
             elif data[ind][0] + data[ind][2] < data[ind - 1][1] + data[ind - 1][2] and ll <= (data[ind - 1][1] - data[ind - 1][0]):
-                print(ind, 2)
+                # print(ind, 2)
 
                 return True
             if ind == len(data) - 1:
                 if sub1[-ll // 2][0] + data[ind][2] > sub2[-1][1]:
-                    print(ind, 3)
+                    # print(ind, 3)
 
                     return True
             elif data[ind][1] + data[ind][2] > data[ind + 1][0] + data[ind + 1][2] and ll < (data[ind + 1][1] - data[ind + 1][0]):
-                print(ind, 4)
+                # print(ind, 4)
 
                 return True
             if ll <= SMALLEST:
-                print(ind, 5)
+                # print(ind, 5)
                 return True
         return False
 

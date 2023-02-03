@@ -2,7 +2,7 @@
 from SyncSubs import *
 from prettytable import PrettyTable
 import PySimpleGUI as sg
-import os,time,threading,SyncSubs
+import os, time, threading, SyncSubs
 
 """
     Basic use of the Table Element
@@ -48,9 +48,7 @@ def process(display):
         return t
 
     global step
-    prt("HOI")
-    prt(cwd == "")
-    if cwd.isspace():
+    if cwd == "":
         f = os.path.dirname(srclist[0])
         if not os.path.exists(f):
             os.makedirs(f + "\\out\\")
@@ -148,7 +146,6 @@ while True:
     reflist = sorted(values['-RF-'].split(";"))
     if values['-OD-'] != "":
         cwd = values['-OD-']
-    print(cwd)
     arr = parselist(srclist, reflist)
     display['-TABLE-'].update(values=arr)
     if event == "Options":
