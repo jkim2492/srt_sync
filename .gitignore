@@ -1,0 +1,9 @@
+
+dist
+build
+.idea
+__pycache__
+*.pyc
+*.srt
+test.py
+SyncSubs2.py

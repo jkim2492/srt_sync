@@ -160,7 +160,5 @@ def total_loss(sub1, sub2):
             prevmin = m
             prevind = j
             prevdur = sub2[j][1] - sub2[j][0]
-        # print(m, j)
         total += m
-    # print()
     return total

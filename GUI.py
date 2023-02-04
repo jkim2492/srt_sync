@@ -142,6 +142,8 @@ display = sg.Window('Subtitle Sync', layout,
 
 while True:
     event, values = display.read()
+    if event == sg.WIN_CLOSED or event == "Quit":
+        break
     srclist = sorted(values['-UF-'].split(";"))
     reflist = sorted(values['-RF-'].split(";"))
     if values['-OD-'] != "":
@@ -156,6 +158,5 @@ while True:
             threading.Thread(target=process, args=(display,), daemon=True).start()
         else:
             display['-console-'].print("Number of unsynced files and reference files must match!")
-    if event == sg.WIN_CLOSED or event == "Quit":
-        break
+
 display.close()
