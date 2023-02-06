@@ -56,7 +56,7 @@ This code will take (1) an unsynced SRT, and (2) a synced SRT (probably in anoth
 If you are on Windows, you can head over to <a href="https://github.com/jkim2492/srt_sync/releases">Releases</a> and run the .exe
 
 
-Or you can just clone the repo and run the scripts yourself.
+Or you can just clone the repo and run the GUI.py or CLI.py yourself.
 
 Example CLI usage:
 
