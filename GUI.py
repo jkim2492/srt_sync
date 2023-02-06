@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 from SyncSubs import *
-from prettytable import PrettyTable
 import PySimpleGUI as sg
 import os, time, threading, SyncSubs
+from showinfm import show_in_file_manager
 
 """
     Basic use of the Table Element
@@ -18,14 +18,14 @@ cwd = os.getcwd()
 def parselist(a, b):
     a = copy(a)
     b = copy(b)
-    arr = []
+    tmp = []
     while len(a) > 0 and len(b) > 0:
-        arr.append([a.pop(0), b.pop(0)])
+        tmp.append([a.pop(0), b.pop(0)])
     while len(a) > 0:
-        arr.append([a.pop(0), ""])
+        tmp.append([a.pop(0), ""])
     while len(b) > 0:
-        arr.append(["", b.pop(0)])
-    return arr
+        tmp.append(["", b.pop(0)])
+    return tmp
 
 
 def timestring(t):
@@ -36,38 +36,36 @@ def timestring(t):
     return a + b + c + d
 
 
-def process(display):
+def process(wn):
     def prt(t):
-        display['-console-'].print(t)
-
-    def display_offsets(data):
-        t = PrettyTable(['From ', 'To', "Offset (ms)"])
-        for x in data:
-            y = [timestring(srcfile[x[0]].start), timestring(srcfile[x[1]].end), x[2]]
-            t.add_row(y)
-        return t
+        wn['-console-'].print(t)
 
     global step
+    global cwd
+    global overwrite
     if cwd == "":
-        f = os.path.dirname(srclist[0])
-        if not os.path.exists(f):
-            os.makedirs(f + "\\out\\")
-        prt(f + "\\out\\")
+        prt("Empty output path detected. Using current directory as output path with overwrite disabled.")
+        overwrite = False
+        cwd = os.getcwd()
+        # f = os.path.dirname(srclist[0])
+        # if not os.path.exists(f):
+        #     os.makedirs(f + "\\out\\")
     for i in range(len(srclist)):
         prt(f"Syncing {os.path.basename(srclist[i])} to {os.path.basename(reflist[i])}")
         start_time = time.time()
-        srcfile = pysrt.open(srclist[i])
-        src = read(srcfile)
-        ref = read(pysrt.open(reflist[i]))
+        src, srctext = read(srclist[i])
+        ref, _ = read(reflist[i])
         if type(step) != int:
             step = max(int(len(src) / 35), 15)
         offsets = all_offsets(src, ref, inc=inc, window=window, step=step)
         offsets = offsets.astype(int)
-        prt(display_offsets(offsets))
+        prt(format_offsets(src, offsets))
         for offset in offsets:
-            srcfile[offset[0]:offset[1]].shift(milliseconds=offset[2])
-        outpath = cwd + "\\" + os.path.basename(srclist[i])
-        srcfile.save(outpath, encoding='utf-8')
+            src[offset[0]:offset[1]] = shift(src[offset[0]:offset[1]], offset[2])
+        outp = cwd + "\\" + os.path.basename(srclist[i])
+        if os.path.isfile(outp) and not overwrite:
+            outp = outp[:-4] + "_1" + outp[-4:]
+        write(outp, src, srctext)
         end_time = time.time()
         prt("Time elapsed: {:.3f} seconds".format(end_time - start_time))
     prt("Done! Click 'Browse' to sync more or press 'Quit")
@@ -127,9 +125,11 @@ layout = [[sg.Table(values=[["", ""]], headings=headings,
            sg.FilesBrowse(key="-UF-", file_types=(("SRT Files", "*.srt"),), tooltip="Files with incorrect sync")],
           [sg.Text("Reference Files: "), sg.Input(change_submits=True),
            sg.FilesBrowse(key="-RF-", file_types=(("SRT Files", "*.srt"),), tooltip="Files with correct sync")],
-          [sg.Text("Output Directory: "), sg.Input(cwd, change_submits=True), sg.FolderBrowse(key="-OD-", tooltip="Where synced files will be saved")],
+          [sg.Text("Output Directory: "), sg.Input(cwd, change_submits=True), sg.FolderBrowse(key="-OD-", tooltip="Where synced files will be saved"),
+           sg.Button("Open", tooltip="Open the output folder in file browser")],
+          [sg.Checkbox('Overwrite?', default=False, key="-OW-")],
           [sg.Button("Process"), sg.Button("Options"), sg.Button("Quit")],
-          [sg.Multiline(size=(100, 20), key='-console-', font=('Consolas', 12))]
+          [sg.Multiline(size=(100, 20), key='-console-', font=('Courier New', 12))]
           ]
 
 # ------ Create Window ------
@@ -146,13 +146,16 @@ while True:
         break
     srclist = sorted(values['-UF-'].split(";"))
     reflist = sorted(values['-RF-'].split(";"))
+    overwrite = values['-OW-']
     if values['-OD-'] != "":
         cwd = values['-OD-']
-    arr = parselist(srclist, reflist)
-    display['-TABLE-'].update(values=arr)
+    if event == "Open":
+        show_in_file_manager(cwd)
+    display['-TABLE-'].update(values=parselist(srclist, reflist))
     if event == "Options":
         inc, window, step, SyncSubs.SMALLEST = options_window()
         print(inc, window, step, SyncSubs.SMALLEST)
+
     if event == "Process":
         if len(srclist) == len(reflist) and srclist[0] != "" and reflist[0] != "":
             threading.Thread(target=process, args=(display,), daemon=True).start()

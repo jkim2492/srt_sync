@@ -1,25 +1,61 @@
 #!/usr/bin/python3
-import pysrt
 import numpy as np
 from copy import deepcopy as copy
+import re
+from prettytable import PrettyTable
 
 tags = r"{\\an\d*}|&lt;.*?&gt;|<.*?>"
 SMALLEST = 5
 
 
-def ms(ls):
-    return ls.hours * 3600000 + ls.minutes * 60000 + ls.seconds * 1000 + ls.milliseconds
+def toMs(match):
+    def ms_helper(quad):
+        return int(quad[0]) * 3600000 + int(quad[1]) * 60000 + int(quad[2]) * 1000 + + int(quad[3])
+
+    return [ms_helper(match[:4]), ms_helper(match[4:])]
 
 
-def read(r):
-    sub = []
-    for line in r:
-        sub.append((ms(line.start), ms(line.end)))
-    return np.array(sub)
+def format_offsets(src, data):
+    t = PrettyTable(['From ', 'To', "Offset (ms)"])
+    for x in data:
+        y = [toTs(src[x[0]][0]), toTs(src[x[1]][1]), x[2]]
+        t.add_row(y)
+    return t
 
 
-def readf(r):
-    return read(pysrt.open(r))
+def toTs(ms):
+    hr = ms // 3600000
+    ms = ms - hr * 3600000
+    mn = ms // 60000
+    ms = ms - mn * 60000
+    sc = ms // 1000
+    ms = ms - sc * 1000
+    return str(hr).rjust(2, "0") + ":" + str(mn).rjust(2, "0") + ":" + str(sc).rjust(2, "0") + "," + str(ms).ljust(3, "0")
+
+
+def read(filename):
+    with open(filename, "r", encoding="utf-8") as f:
+        x = f.read()
+        if ord(x[0]) == 65279:
+            x = x[1:]
+        texts = re.split(r"\d*\n\d*?[:|\.|,]\d*?[:|\.|,]\d*?[:|\.|,]\d*? --> \d*?[:|\.|,]\d*?[:|\.|,]\d*?[:|\.|,]\d*", x)
+        texts = list(filter(None, texts))
+        texts = [s.strip() for s in texts]
+        matches = re.findall(r"(\d*?)[:|\.|,](\d*?)[:|\.|,](\d*?)[:|\.|,](\d*?) --> (\d*?)[:|\.|,](\d*?)[:|\.|,](\d*?)[:|\.|,](\d*)", x)
+        for i in range(len(matches)):
+            matches[i] = toMs(matches[i])
+        return np.array(matches), texts
+
+
+def write(filename, times, texts):
+    with open(filename, "w", encoding="utf-8") as f:
+        row = 0
+        for i in range(len(times)):
+            if times[i][0] >=0:
+                f.write(f"{row}\n")
+                f.write(f"{toTs(times[i][0])} --> {toTs(times[i][1])}\n")
+                f.write(texts[i] + "\n\n")
+                row += 1
 
 
 def shift(sub, milliseconds):

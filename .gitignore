@@ -7,3 +7,6 @@ __pycache__
 *.srt
 test.py
 SyncSubs2.py
+*.spec
+*.vtt
+*.pyc
