@@ -150,6 +150,7 @@ while True:
     if values['-OD-'] != "":
         cwd = values['-OD-']
     if event == "Open":
+        print(cwd)
         show_in_file_manager(cwd)
     display['-TABLE-'].update(values=parselist(srclist, reflist))
     if event == "Options":
