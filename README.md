@@ -50,25 +50,24 @@ This code will take (1) an unsynced SRT, and (2) a synced SRT (probably in anoth
 <!-- GETTING STARTED -->
 ## Getting Started
 
- ![Screenshot](images/screen.png?raw=true)
+ ![Screenshot](https://github.com/jkim2492/srt_sync/blob/files/images/screen1.png?raw=true)
 
-To get started, clone the repo and run 
-```sh
-   py GUI.py
-   ```
+To get started, head to the releases tab to download a packaged .exe or use the CLI
+
 Example CLI usage:
 
    ```sh
-   py CLI.py unsynced.srt reference.srt output.srt --inc=100 --window=90 --minimum=5 --size=15
+   py CLI.py unsynced.srt reference.srt output.srt --window=90 --size=8
    ```
 
-Each sync will take around 5 ~ 15 seconds for a 20 minute show with the default settings.
+ ![Screenshot](https://github.com/jkim2492/srt_sync/blob/files/images/screen2.png?raw=true)
+
+
+Each sync will take around 1 ~ 5 seconds with the default settings.
 
 ### Parameters
-- inc (milliseconds) : How accurate the sync is going to be. Your average error will be around 2xinc. Default is 100.
 - window (seconds) : The search radius. This should be greater than the maximum discrepency between unsynced.srt and reference.srt
-- minimum (lines) : Should be less than the smallest continuous segment of unsynced.srt sharing the same sync.
-- size (lines) : Size of each subdivided segment in the search. Should be greater than 2xminimum
+- size (lines) : Size of each subdivided segment in the search. This should be the least number of lines in your unsynced srt that share the same sync offset
 
 
 <!-- ROADMAP -->
