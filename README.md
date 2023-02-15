@@ -52,16 +52,14 @@ This code will take (1) an unsynced SRT, and (2) a synced SRT (probably in anoth
 
  ![Screenshot](images/screen.png?raw=true)
 
-
-If you are on Windows, you can head over to <a href="https://github.com/jkim2492/srt_sync/releases">Releases</a> and run the .exe
-
-
-Or you can just clone the repo and run the scripts yourself.
-
+To get started, clone the repo and run 
+```sh
+   py GUI.py
+   ```
 Example CLI usage:
 
    ```sh
-   CLI.py unsynced.srt reference.srt output.srt --inc=100 --window=90 --minimum=5 --size=15
+   py CLI.py unsynced.srt reference.srt output.srt --inc=100 --window=90 --minimum=5 --size=15
    ```
 
 Each sync will take around 5 ~ 15 seconds for a 20 minute show with the default settings.
@@ -81,7 +79,7 @@ Each sync will take around 5 ~ 15 seconds for a 20 minute show with the default 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-
+ 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/github_username/repo_name.svg?style=for-the-badge
