@@ -11,3 +11,5 @@ node_modules/
 .venv
 venv
 electron
+*.log
+.vscode/launch.json
