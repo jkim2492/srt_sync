@@ -4,9 +4,10 @@ build
 .idea
 __pycache__
 *.pyc
-*.srt
-test.py
-SyncSubs2.py
 *.spec
 *.vtt
 *.pyc
+node_modules/
+.venv
+venv
+electron
