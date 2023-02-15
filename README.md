@@ -25,7 +25,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/jkim2492/srt_sync">
-      <img src="images/cc.png" alt="Logo" width="80" height="80">
+      <img src="https://github.com/jkim2492/srt_sync/blob/files/images/icon.png?raw=True" alt="icon" width="80" height="80">
   </a>
 
 <h3 align="center">srt_sync</h3>
@@ -74,7 +74,7 @@ Each sync will take around 5 ~ 15 seconds for a 20 minute show with the default 
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Make the GUI more visually pleasing
+- [ ] Add more options for convenience
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
