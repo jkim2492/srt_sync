@@ -13,13 +13,18 @@ SMALLEST = 3
 
 def toMs(match):
     def ms_helper(quad):
-        return int(quad[0]) * 3600000 + int(quad[1]) * 60000 + int(quad[2]) * 1000 + + int(quad[3])
+        return (
+            int(quad[0]) * 3600000
+            + int(quad[1]) * 60000
+            + int(quad[2]) * 1000
+            + +int(quad[3])
+        )
 
     return [ms_helper(match[:4]), ms_helper(match[4:])]
 
 
 def format_offsets(src, data):
-    t = PrettyTable(['From ', 'To', "Offset (ms)"])
+    t = PrettyTable(["From ", "To", "Offset (ms)"])
     for x in data:
         y = [toTs(src[x[0]][0]), toTs(src[x[1] - 1][1]), x[2]]
         t.add_row(y)
@@ -34,7 +39,7 @@ def makedir(name):
 def shift_offsets(src, offsets):
     src = copy(src)
     for offset in offsets:
-        src[offset[0]:offset[1]] = shift(src[offset[0]:offset[1]], offset[2])
+        src[offset[0] : offset[1]] = shift(src[offset[0] : offset[1]], offset[2])
     return src
 
 
@@ -45,7 +50,15 @@ def toTs(ms):
     ms = ms - mn * 60000
     sc = ms // 1000
     ms = ms - sc * 1000
-    return str(hr).rjust(2, "0") + ":" + str(mn).rjust(2, "0") + ":" + str(sc).rjust(2, "0") + "," + str(ms).ljust(3, "0")
+    return (
+        str(hr).rjust(2, "0")
+        + ":"
+        + str(mn).rjust(2, "0")
+        + ":"
+        + str(sc).rjust(2, "0")
+        + ","
+        + str(ms).ljust(3, "0")
+    )
 
 
 def read(filename):
@@ -54,11 +67,15 @@ def read(filename):
         if ord(x[0]) == 65279:
             x = x[1:]
         texts = re.split(
-            r"\d*\n\d*?[:|\.|,]\d*?[:|\.|,]\d*?[:|\.|,]\d*? --> \d*?[:|\.|,]\d*?[:|\.|,]\d*?[:|\.|,]\d*", x)
+            r"\d*\n\d*?[:|\.|,]\d*?[:|\.|,]\d*?[:|\.|,]\d*? --> \d*?[:|\.|,]\d*?[:|\.|,]\d*?[:|\.|,]\d*",
+            x,
+        )
         texts = list(filter(None, texts))
         texts = [s.strip() for s in texts]
         matches = re.findall(
-            r"(\d*?)[:|\.|,](\d*?)[:|\.|,](\d*?)[:|\.|,](\d*?) --> (\d*?)[:|\.|,](\d*?)[:|\.|,](\d*?)[:|\.|,](\d*)", x)
+            r"(\d*?)[:|\.|,](\d*?)[:|\.|,](\d*?)[:|\.|,](\d*?) --> (\d*?)[:|\.|,](\d*?)[:|\.|,](\d*?)[:|\.|,](\d*)",
+            x,
+        )
         for i in range(len(matches)):
             matches[i] = toMs(matches[i])
         return np.array(matches), texts
@@ -78,7 +95,7 @@ def write(filename, times, texts):
 def safepath(filepath):
     if os.path.exists(filepath):
         name, ext = path_ext(filepath)
-        filepath = os.path.join(name+"_1"+ext)
+        filepath = os.path.join(name + "_1" + ext)
     return filepath
 
 
@@ -103,7 +120,7 @@ def time_offset(sub1, sub2, inc, window):
         losses = np.array([], dtype=np.int32)
         rep = int(window * 1000 // inc)
         tmp = shift(tmp, -sign * inc)
-        for i in range(rep):
+        for _ in range(rep):
             tmp = shift(tmp, sign * inc)
             loss = total_loss(tmp, sub2)
             if loss == 0:
@@ -148,10 +165,10 @@ def all_offsets(sub1, sub2, inc, window, step):
     def findstart():
         ls = []
         for j in range(step):
-            tmp = sub1[j:j + step]
+            tmp = sub1[j : j + step]
             _, tmploss = line_offset(tmp, sub2, window=window)
             ls.append(tmploss)
-        m, ind = mindex(ls)
+        _, ind = mindex(ls)
         return ind
 
     i = findstart()
@@ -184,12 +201,16 @@ def adjust(sub1, sub2, data1):
             if ind == 0:
                 if sub1[ll // 2][1] + data[ind][2] < 0:
                     return True
-            elif data[ind][0] + data[ind][2] < data[ind - 1][1] + data[ind - 1][2] and ll <= (data[ind - 1][1] - data[ind - 1][0]):
+            elif data[ind][0] + data[ind][2] < data[ind - 1][1] + data[ind - 1][
+                2
+            ] and ll <= (data[ind - 1][1] - data[ind - 1][0]):
                 return True
             if ind == len(data) - 1:
                 if sub1[-ll // 2][0] + data[ind][2] > sub2[-1][1]:
                     return True
-            elif data[ind][1] + data[ind][2] > data[ind + 1][0] + data[ind + 1][2] and ll < (data[ind + 1][1] - data[ind + 1][0]):
+            elif data[ind][1] + data[ind][2] > data[ind + 1][0] + data[ind + 1][
+                2
+            ] and ll < (data[ind + 1][1] - data[ind + 1][0]):
                 return True
             if ll <= SMALLEST:
                 return True
@@ -203,7 +224,7 @@ def adjust(sub1, sub2, data1):
             a[1] = a[0]
             b[0] = a[0]
         else:
-            k = pivot(sub1[a[0]:b[1]], sub2, a[2], b[2])
+            k = pivot(sub1[a[0] : b[1]], sub2, a[2], b[2])
             a[1] = a[0] + k
             b[0] = a[0] + k
     newdata = []
@@ -295,6 +316,7 @@ def total_loss(sub1, sub2):
             prevdur = sub2[j][1] - sub2[j][0]
         total += m
     return total
+
 
 # def total_loss2(sub1, sub2):
 #     def mabs(x):

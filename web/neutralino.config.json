@@ -1,0 +1,26 @@
+{
+  "applicationId": "SRT Sync",
+  "defaultMode": "window",
+  "port": 0,
+  "documentRoot": "/",
+  "url": "/main.html",
+  "enableServer": true,
+  "enableNativeAPI": true,
+  "tokenSecurity": "one-time",
+  "modes": {
+    "window": {
+      "title": "SRT Sync",
+      "width": 1200,
+      "height": 650,
+      "fullScreen": false,
+      "alwaysOnTop": false,
+      "borderless": false,
+      "enableInspector": true,
+      "icon": "/assets/favicon.ico",
+      "maximize": false,
+      "hidden": false,
+      "resizable": false,
+      "exitProcessOnClose": true
+    }
+  }
+}

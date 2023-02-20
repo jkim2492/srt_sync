@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-import sys, SyncSub, time
-from SyncSub import *
+import sys, srtSync, time
+from srtSync import *
 
 srcp = sys.argv[1]
 refp = sys.argv[2]
@@ -17,8 +17,6 @@ for i in range(3, len(sys.argv)):
         inc = int(sys.argv[i].split("--inc=")[-1])
     if sys.argv[i].startswith("--size="):
         step = int(sys.argv[i].split("--size=")[-1])
-    if sys.argv[i].startswith("--minimum="):
-        SyncSub.SMALLEST = int(sys.argv[i].split("--minimum=")[-1])
     if sys.argv[i].startswith("--window="):
         window = int(sys.argv[i].split("--window=")[-1])
 
