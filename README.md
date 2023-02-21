@@ -25,7 +25,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/jkim2492/srt_sync">
-      <img src="https://github.com/jkim2492/srt_sync/blob/master/images/icon.png?raw=True" alt="icon" width="80" height="80">
+      <img src="https://github.com/jkim2492/srt_sync/blob/main/images/icon.png?raw=True" alt="icon" width="80" height="80">
   </a>
 
 <h3 align="center">srt_sync</h3>
@@ -50,7 +50,7 @@ This code will take (1) an unsynced SRT, and (2) a synced SRT (probably in anoth
 <!-- GETTING STARTED -->
 ## Getting Started
 
- ![Screenshot](https://github.com/jkim2492/srt_sync/blob/master/images/screen1.png?raw=true)
+ ![Screenshot](https://github.com/jkim2492/srt_sync/blob/main/images/screen1.png?raw=true)
 
 To get started, head to the releases tab to download a packaged .exe or use the CLI
 
@@ -60,7 +60,7 @@ Example CLI usage:
    py CLI.py unsynced.srt reference.srt output.srt --window=90 --size=8
    ```
 
- ![Screenshot](https://github.com/jkim2492/srt_sync/blob/master/images/screen2.png?raw=true)
+ ![Screenshot](https://github.com/jkim2492/srt_sync/blob/main/images/screen2.png?raw=true)
 
 
 Each sync will take around 1 ~ 5 seconds with the default settings.
