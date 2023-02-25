@@ -1,4 +1,4 @@
-var port = 8080
+var port = 8000
 var sep = String.fromCharCode(31)
 var arrsep = String.fromCharCode(30)
 

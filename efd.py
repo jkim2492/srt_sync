@@ -7,6 +7,7 @@ import subprocess
 import json
 import os
 import sys
+import socket
 from collections.abc import Container
 
 app = Bottle()
@@ -16,12 +17,12 @@ arrayHead = chr(30)
 sep = chr(31)
 
 
-@app.route('/websocket')
+@app.route("/websocket")
 def handle_websocket():
     global ws
-    ws = request.environ.get('wsgi.websocket')
+    ws = request.environ.get("wsgi.websocket")
     if not ws:
-        abort(400, 'Expected WebSocket request.')
+        abort(400, "Expected WebSocket request.")
     while True:
         try:
             msg = ws.receive()
@@ -58,13 +59,38 @@ def unpack(argstr):
     return arglist
 
 
-def start_server(path, *args, port=8080):
+def next_free_port():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    port = 8000
+    max_port = 65535
+    while port <= max_port:
+        try:
+            sock.bind(("", port))
+            sock.close()
+            return port
+        except OSError:
+            port += 1
+    raise IOError("no free ports")
+
+
+def replaceport(num):
+    jspath = resource_path(R"web\assets\efd.js")
+    with open(jspath, "r") as f:
+        lines = f.readlines()
+    lines[0] = f"var port = {num}\n"
+    with open(jspath, "w") as f:
+        f.writelines(lines)
+
+
+def start_server(path, *args, port=0):
     global module
     frm = inspect.stack()[1]
     module = inspect.getmodule(frm[0])
-    server = WSGIServer(("localhost", port),
-                        app,
-                        handler_class=WebSocketHandler)
+    if port == 0:
+        port = next_free_port()
+    replaceport(port)
+    server = WSGIServer(("localhost", port), app, handler_class=WebSocketHandler)
+    print(str(server))
     path = resource_path(path)
     args = list(args)
     args.insert(0, path)
@@ -82,7 +108,6 @@ def run(jsName, *args):
 
 
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    base_path = getattr(sys, '_MEIPASS',
-                        os.path.dirname(os.path.abspath(__file__)))
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
