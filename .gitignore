@@ -6,6 +6,7 @@ __pycache__
 *.pyc
 *.spec
 *.vtt
+*.srt
 *.pyc
 node_modules/
 .venv

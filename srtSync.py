@@ -3,6 +3,7 @@ import time
 import numpy as np
 from copy import deepcopy as copy
 import re
+import inspect
 import os
 from prettytable import PrettyTable
 from os.path import join as pathjoin
@@ -24,9 +25,9 @@ def toMs(match):
 
 
 def format_offsets(src, data):
-    t = PrettyTable(["From ", "To", "Offset (ms)"])
+    t = PrettyTable(["From ", "To", "Offset (sec)"])
     for x in data:
-        y = [toTs(src[x[0]][0]), toTs(src[x[1] - 1][1]), x[2]]
+        y = [toTs(src[x[0]][0]), toTs(src[x[1] - 1][1]), x[2] / 1000]
         t.add_row(y)
     return t
 
@@ -131,7 +132,6 @@ def time_offset(sub1, sub2, inc, window):
 
     noffset, nloss = offset_helper(sign=-1)
     poffset, ploss = offset_helper(sign=1)
-
     if nloss < ploss:
         return -noffset
     return poffset
@@ -151,13 +151,14 @@ def line_offset(sub1, sub2, window):
             tmp = copy(sub1)
             tmp = shift(tmp, diff)
             tmploss = total_loss(tmp, sub2)
-            if tmploss == 0:
-                return 0, 0
+            # if tmploss == 0:
+            #     return 0, 0
             losses = np.append(losses, tmploss)
         ind = np.argmin(losses)
         return diffs[ind], losses[ind]
 
     offset, loss = offset_helper()
+    # print(offset,loss)
     return offset, loss
 
 
@@ -181,16 +182,16 @@ def all_offsets(sub1, sub2, inc, window, step):
         else:
             to = min(i + step, len(sub1))
         piece = sub1[i:to]
-        offset, _ = line_offset(piece, sub2, window=window)
+        offset, loss = line_offset(piece, sub2, window=window)
+        # print(offset, loss)
         piece = shift(piece, offset)
         # Use time based here
         offset2 = time_offset(piece, sub2, inc=inc, window=1)
         # print(offset2)
         offsets.append([i, to, offset2 + offset])
         i += step
-    # print(format_offsets(sub1, offsets))
+    print(format_offsets(sub1, offsets))
     offsets = adjust_loop(sub1, sub2, offsets)
-
     return np.array(offsets)
 
 
@@ -269,17 +270,8 @@ def pivot(sub1, sub2, fr, to):
         losses = np.append(losses, loss)
     return np.argmin(losses) + SMALLEST // 2
 
-
-def pivot2(sub1, sub2, fr, to):
-    losses = np.array([], dtype=np.int32)
-    for i in range(SMALLEST // 2, len(sub1) - SMALLEST // 2):
-        sub = copy(sub1)
-        piece1 = shift(sub[:i], fr)
-        piece2 = shift(sub[i:], to)
-        piece1 = np.append(piece1, piece2, axis=0)
-        loss = total_loss(piece1, sub2)
-        losses = np.append(losses, loss)
-    return np.argmin(losses) + SMALLEST // 2
+def sgm(z):
+    return np.exp(z-4) + 1
 
 
 def mjt(sub2, mjlist):
@@ -287,6 +279,7 @@ def mjt(sub2, mjlist):
     prevmin = -1
     prevind = -1
     prevdur = 0
+    matched = []
     for mj in mjlist:
         m, j = mj
         if j == prevind and prevdur > 0:
@@ -296,15 +289,19 @@ def mjt(sub2, mjlist):
             prevmin = m
             prevind = j
             prevdur = sub2[j][1] - sub2[j][0]
+        matched.append(prevind)
         total += m
-    return total
-
+    matched = np.unique(matched)
+    segment_length = matched[-1] - matched[0]
+    mul = sgm (abs(segment_length - len(matched)))
+    return total*mul
 
 def total_loss(sub1, sub2):
     total = 0
     prevmin = -1
     prevind = -1
     prevdur = 0
+    matched = []
     for line in sub1:
         m, j = mindex(abs(sub2[:, 0] - line[0]))
         if j == prevind and prevdur > 0:
@@ -314,15 +311,9 @@ def total_loss(sub1, sub2):
             prevmin = m
             prevind = j
             prevdur = sub2[j][1] - sub2[j][0]
+        matched.append(prevind)
         total += m
-    return total
-
-
-# def total_loss2(sub1, sub2):
-#     def mabs(x):
-#         return mindex(abs(sub2[:, 0] - x))
-#
-#     vf = np.vectorize(mabs)
-#     mjlist = np.column_stack(vf(sub1[:, 0])[:2])
-#     total = mjt(sub2, mjlist)
-#     return total
+    matched = np.unique(matched)
+    segment_length = matched[-1] - matched[0]
+    mul = sgm (abs(segment_length - len(matched)))
+    return total*mul
