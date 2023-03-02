@@ -106,8 +106,17 @@ def callpyfunction(functionName, args=[]):
 def run(jsName, *args):
     ws.send(f"{sep}{jsName}{pack(args)}")
 
+def build():
+    scriptPath = "srtSync_GUI.py"
+    assetPath = "web"
+    iconPath = R"web\assets\favicon.ico"
+    buildstr = f'pyinstaller {scriptPath} "--add-data={assetPath};{assetPath}" "--icon={iconPath}" --onefile --clean --noconsole'
+    subprocess.run(buildstr)
 
 def resource_path(relative_path):
     """Get absolute path to resource, works for dev and for PyInstaller"""
     base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
+
+
+

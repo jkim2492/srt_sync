@@ -1,31 +1,36 @@
 #!/usr/bin/python3
-import sys, srtSync, time
+import srtSync, time, argparse
 from srtSync import *
 
-srcp = sys.argv[1]
-refp = sys.argv[2]
-outp = sys.argv[3]
+parser = argparse.ArgumentParser()
+parser.add_argument("src", type=str, help="Unsynced subtitle path")
+parser.add_argument("ref", type=str, help="Reference subtitle path")
+parser.add_argument("out", type=str, help="Output subtitle path")
+parser.add_argument(
+    "--incr", default=srtSync.INCR, type=int, help="increment in value in ms to use during sync"
+)
+parser.add_argument(
+    "--step", default=srtSync.STEP, type=int, help="output file for the moshed video"
+)
+parser.add_argument("--rad1", default=srtSync.RAD1, type=int, help="search radius")
+args = parser.parse_args().__dict__
+
+srcp = args["src"]
+refp = args["ref"]
+outp = args["out"]
 
 src, srctext = read(srcp)
 ref, _ = read(refp)
-step = max(int(len(src) / 35), 15)
-inc, window = 100, 90
-
-for i in range(3, len(sys.argv)):
-
-    if sys.argv[i].startswith("--inc="):
-        inc = int(sys.argv[i].split("--inc=")[-1])
-    if sys.argv[i].startswith("--size="):
-        step = int(sys.argv[i].split("--size=")[-1])
-    if sys.argv[i].startswith("--window="):
-        window = int(sys.argv[i].split("--window=")[-1])
+srtSync.INCR = args["incr"]
+srtSync.STEP = args["step"]
+srtSync.RAD1 = args["rad1"]
 
 print(f"Syncing {srcp} to {refp}")
 start_time = time.time()
-offsets = all_offsets(src, ref, inc=inc, window=window, step=step)
+offsets = all_offsets(src, ref)
 offsets = offsets.astype(int)
 print(format_offsets(src, offsets))
 for offset in offsets:
-    src[offset[0]:offset[1]] = shift(src[offset[0]:offset[1]], offset[2])
+    src[offset[0] : offset[1]] = shift(src[offset[0] : offset[1]], offset[2])
 write(outp, src, srctext)
 print(f"Time elapsed: {time.time() - start_time} seconds")

@@ -3,13 +3,15 @@ import time
 import numpy as np
 from copy import deepcopy as copy
 import re
-import inspect
 import os
 from prettytable import PrettyTable
-from os.path import join as pathjoin
 
 tags = r"{\\an\d*}|&lt;.*?&gt;|<.*?>"
 SMALLEST = 3
+INCR = 100
+RAD1 = 120
+STEP = 5
+
 
 
 def toMs(match):
@@ -115,20 +117,20 @@ def mindex(arr):
     return arr[ind], ind
 
 
-def time_offset(sub1, sub2, inc, window):
+def time_offset(sub1, sub2, RAD2):
     def offset_helper(sign):
         tmp = copy(sub1)
         losses = np.array([], dtype=np.int32)
-        rep = int(window * 1000 // inc)
-        tmp = shift(tmp, -sign * inc)
+        rep = int(RAD2 * 1000 // INCR)
+        tmp = shift(tmp, -sign * INCR)
         for _ in range(rep):
-            tmp = shift(tmp, sign * inc)
+            tmp = shift(tmp, sign * INCR)
             loss = total_loss(tmp, sub2)
             if loss == 0:
                 return 0, 0
             losses = np.append(losses, loss)
         ind = np.argmin(losses)
-        return ind * inc, losses[ind]
+        return ind * INCR, losses[ind]
 
     noffset, nloss = offset_helper(sign=-1)
     poffset, ploss = offset_helper(sign=1)
@@ -137,16 +139,16 @@ def time_offset(sub1, sub2, inc, window):
     return poffset
 
 
-def line_offset(sub1, sub2, window):
+def line_offset(sub1, sub2):
     def offset_helper():
         losses = np.array([], dtype=np.int32)
         diffs = sub2[:, 0] - sub1[0][0]
-        diffs = diffs[diffs >= -window * 1000]
-        diffs = diffs[diffs <= window * 1000]
+        diffs = diffs[diffs >= -RAD1 * 1000]
+        diffs = diffs[diffs <= RAD1 * 1000]
 
         diffs = np.unique(np.append([0], diffs))
         if len(diffs) == 0:
-            return -window * 1000, 10000000
+            return -RAD1 * 1000, 10000000
         for diff in diffs:
             tmp = copy(sub1)
             tmp = shift(tmp, diff)
@@ -162,12 +164,14 @@ def line_offset(sub1, sub2, window):
     return offset, loss
 
 
-def all_offsets(sub1, sub2, inc, window, step):
+def all_offsets(sub1, sub2):
+    # RAD2 = np.median(np.diff(sub1[:, 0]))
+
     def findstart():
         ls = []
-        for j in range(step):
-            tmp = sub1[j : j + step]
-            _, tmploss = line_offset(tmp, sub2, window=window)
+        for j in range(STEP):
+            tmp = sub1[j : j + STEP]
+            _, tmploss = line_offset(tmp, sub2)
             ls.append(tmploss)
         _, ind = mindex(ls)
         return ind
@@ -176,26 +180,26 @@ def all_offsets(sub1, sub2, inc, window, step):
     fin = False
     offsets = []
     while not fin:
-        if i + step * 2 >= len(sub1):
+        if i + STEP * 2 >= len(sub1):
             to = len(sub1)
             fin = True
         else:
-            to = min(i + step, len(sub1))
+            to = min(i + STEP, len(sub1))
         piece = sub1[i:to]
-        offset, loss = line_offset(piece, sub2, window=window)
+        offset, loss = line_offset(piece, sub2)
         # print(offset, loss)
         piece = shift(piece, offset)
         # Use time based here
-        offset2 = time_offset(piece, sub2, inc=inc, window=1)
+        offset2 = time_offset(piece, sub2, RAD2=5)
         # print(offset2)
         offsets.append([i, to, offset2 + offset])
-        i += step
-    print(format_offsets(sub1, offsets))
+        i += STEP
+    # print(format_offsets(sub1, offsets))
     offsets = adjust_loop(sub1, sub2, offsets)
     return np.array(offsets)
 
 
-def adjust(sub1, sub2, data1):
+def adjust(sub1, sub2, offsets):
     def sieve(ind):
         if len(data) > 1:
             ll = data[ind][1] - data[ind][0]
@@ -217,7 +221,7 @@ def adjust(sub1, sub2, data1):
                 return True
         return False
 
-    data = copy(data1)
+    data = copy(offsets)
     for i in range(len(data) - 1):
         a = data[i]
         b = data[i + 1]
@@ -230,7 +234,7 @@ def adjust(sub1, sub2, data1):
             b[0] = a[0] + k
     newdata = []
     if len(data) > 1:
-        # This should run till the end since we check endpoints in sieve
+        # This should run till the end sINCe we check endpoints in sieve
         for i in range((len(data))):
             if not sieve(i):
                 newdata.append((data[i]))
@@ -270,8 +274,9 @@ def pivot(sub1, sub2, fr, to):
         losses = np.append(losses, loss)
     return np.argmin(losses) + SMALLEST // 2
 
+
 def sgm(z):
-    return np.exp(z-4) + 1
+    return np.exp(z - 4) + 1
 
 
 def mjt(sub2, mjlist):
@@ -293,8 +298,9 @@ def mjt(sub2, mjlist):
         total += m
     matched = np.unique(matched)
     segment_length = matched[-1] - matched[0]
-    mul = sgm (abs(segment_length - len(matched)))
-    return total*mul
+    mul = sgm(abs(segment_length - len(matched)))
+    return total * mul
+
 
 def total_loss(sub1, sub2):
     total = 0
@@ -315,5 +321,5 @@ def total_loss(sub1, sub2):
         total += m
     matched = np.unique(matched)
     segment_length = matched[-1] - matched[0]
-    mul = sgm (abs(segment_length - len(matched)))
-    return total*mul
+    mul = sgm(abs(segment_length - len(matched)))
+    return total * mul

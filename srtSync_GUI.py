@@ -3,7 +3,8 @@ import efd
 import sys
 from tkinter import filedialog as fd
 from srtSync import *
-
+import srtSync
+import subprocess
 
 srclist = []
 reflist = []
@@ -11,9 +12,6 @@ status = []
 outdir = "Default"
 log = ""
 buttons = ["srcb", "refb", "procb", "outb","appb"]
-inc = 100
-window = 90
-step = 5
 
 
 def parselist():
@@ -59,20 +57,18 @@ def process():
 
 
 def updateParam(i, w, s):
-    global inc, window, step
-    inc = int(i)
-    window = int(w)
-    step = int(s)
-    addline(f"increment = {inc}, window_size = {window}, segment_size = {step}")
+    srtSync.INCR = int(i)
+    srtSync.RAD1 = int(w)
+    srtSync.STEP = int(s)
+    addline(f"increment = {srtSync.INCR}, window_size = {srtSync.RAD1}, segment_size = {srtSync.STEP}")
 
 
 def processInd(i):
-    global status, inc, window, step
     addline(f"Syncing {os.path.basename(srclist[i])} to {os.path.basename(reflist[i])}")
     start_time = time.time()
     src, srcf = read(srclist[i])
     ref, _ = read(reflist[i])
-    offsets = all_offsets(src, ref, inc=inc, window=window, step=step)
+    offsets = all_offsets(src, ref)
     addline(format_offsets(src, offsets).get_string())
     src = shift_offsets(src, offsets)
     filepath, filename = os.path.split(srclist[i])
@@ -81,7 +77,7 @@ def processInd(i):
         makedir(dest)
     else:
         dest = outdir
-    savepath = pathjoin(dest, filename)
+    savepath = os.path.join(dest, filename)
     write(savepath, src, srcf)
     end_time = time.time()
     addline(f"Saved to {savepath}")
@@ -142,7 +138,6 @@ def getdir():
 
 def end():
     sys.exit()
-
 
 path = R"web/neutralino-win_x64.exe"
 web = efd.resource_path("web")
