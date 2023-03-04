@@ -8,6 +8,7 @@ import json
 import os
 import sys
 import socket
+import webview
 from collections.abc import Container
 
 app = Bottle()
@@ -81,22 +82,19 @@ def replaceport(num):
     with open(jspath, "w") as f:
         f.writelines(lines)
 
+def start_server():
+    port = next_free_port()
+    replaceport(port)
+    server = WSGIServer(("localhost", port), app, handler_class=WebSocketHandler)
+    server.serve_forever()
 
-def start_server(path, *args, port=0):
+def start(url,width=1280,height=720):
     global module
     frm = inspect.stack()[1]
     module = inspect.getmodule(frm[0])
-    if port == 0:
-        port = next_free_port()
-    replaceport(port)
-    server = WSGIServer(("localhost", port), app, handler_class=WebSocketHandler)
-    print(str(server))
-    path = resource_path(path)
-    args = list(args)
-    args.insert(0, path)
-    subprocess.Popen(args)
-    server.serve_forever()
-
+    window = webview.create_window('srtSync', url,width=width, height=height, resizable=False)
+    webview.start (start_server,storage_path=resource_path("/"))
+    
 
 def callpyfunction(functionName, args=[]):
     f = getattr(module, functionName)
@@ -107,7 +105,7 @@ def run(jsName, *args):
     ws.send(f"{sep}{jsName}{pack(args)}")
 
 def build():
-    scriptPath = "srtSync_GUI.py"
+    scriptPath = "gui.py"
     assetPath = "web"
     iconPath = R"web\assets\favicon.ico"
     buildstr = f'pyinstaller {scriptPath} "--add-data={assetPath};{assetPath}" "--icon={iconPath}" --onefile --clean --noconsole'

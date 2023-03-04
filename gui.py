@@ -138,7 +138,6 @@ def getdir():
 
 def end():
     sys.exit()
+    
 
-path = R"web/neutralino-win_x64.exe"
-web = efd.resource_path("web")
-efd.start_server(path, f"--path={web}")
+efd.start(R"web\main.html",1200,650)
